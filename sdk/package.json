@@ -1,0 +1,8 @@
+{
+  "name": "@finprodata/sdk",
+  "version": "0.0.1",
+  "description": "TypeScript SDK for the finprodata API (open source, Phase 5)",
+  "license": "MIT",
+  "type": "module",
+  "main": "./src/index.ts"
+}

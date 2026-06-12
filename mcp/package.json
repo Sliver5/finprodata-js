@@ -1,0 +1,16 @@
+{
+  "name": "@finprodata/mcp",
+  "version": "0.0.1",
+  "description": "MCP server for the finprodata API (open source, Phase 5)",
+  "license": "MIT",
+  "type": "module",
+  "main": "./src/index.ts",
+  "dependencies": {
+    "@finprodata/sdk": "workspace:*",
+    "@modelcontextprotocol/sdk": "^1.29.0",
+    "zod": "^3.25.76"
+  },
+  "devDependencies": {
+    "tsx": "^4.22.4"
+  }
+}

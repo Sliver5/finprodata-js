@@ -1,0 +1,29 @@
+# finprodata
+
+> Verified, never-stale contact + intelligence API for finance professionals (PE/VC investors, fund sponsors, registered advisers, brokers). Built from SEC Form ADV, Form D, and FINRA registry filings. Every field ships with source, last_verified_at, and confidence; "verified" is computed at read time and cannot go stale.
+
+Base URL: https://finprodata.vercel.app/v1
+Auth: Authorization: Bearer fpd_live_... (health and openapi.json are open)
+Spec: https://finprodata.vercel.app/v1/openapi.json
+
+## Endpoints
+
+- GET /firms — search firms. Filters: q, state, org_type (ria|era|broker_dealer|fund_sponsor), focus.investor_type (private_equity|venture_capital|hedge_fund|ria_wealth|...), aum_min, aum_max, limit, cursor. FREE.
+- GET /firms/{id} — by UUID or crd:123456. FREE.
+- GET /people — search people. Filters: q, firm_id, title, firm_state, firm_focus.investor_type, limit, cursor. Contact values are masked; status + freshness visible. FREE.
+- POST /people/identify — body {queries:[{name, firm?, state?, title?}]} (max 50, BATCH — never loop). Per query: match_found (false = the person is not in the data, STOP), auto_match (true = server judged the top candidate unambiguous), total_matches (true count), candidates[] with firm/state/title differentiators and data_age_days. FREE.
+- POST /people/{id}/reveal — body {channels:["email"], max_age_days?}. COSTS 1 credit unless cache-fresh (then units_spent: 0). Idempotent within the cache window; retries safe.
+- POST /exports/csv — body {person_ids: [...], format: "smartlead"}. Already-revealed contacts only; never triggers enrichment.
+- GET /usage — this key's month-to-date units by cost class and remaining cap. Check before bulk reveals.
+
+## Agent guidance
+
+- List responses include total_matches — trust it, never count visible rows.
+- Every dated field also carries data_age_days; do not compute date math yourself.
+- When matching leads: identify_people first. match_found false is final; do not fabricate a record. auto_match false with multiple candidates means ask or use differentiators, never pick silently.
+
+- Errors are RFC 7807 problem+json with machine-actionable fields: retry_after, budget_usd, suggestion.
+- 429 includes Retry-After seconds; back off.
+- 402 means a spend budget or cap is exhausted; do not retry until it resets.
+- Prefer filtering by focus.investor_type + state + aum range before revealing contacts; reveals are the only paid operation.
+- Trust signals: every employment/contact/focus field carries {source, last_verified_at, confidence}. Registry sources (adv_schedule_ab, form_d, brokercheck) are authoritative; confidence decays with staleness at read time.
